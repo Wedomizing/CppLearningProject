@@ -34,7 +34,7 @@ namespace ZXCache
     {   
         private:
                 using LruNodeType = LruNode<Key,Value>;
-                using NodePtr = std::shared_ptr<LruNode<Key,Value>;
+                using NodePtr = std::shared_ptr<LruNode<Key,Value>>;
                 using NodeMap = std::unordered_map<Key,NodePtr>;
                 int capacity_;
                 NodePtr DummyHead;
@@ -54,19 +54,45 @@ namespace ZXCache
                                 nodeptr->next_->prev_=nodeptr->prev_;
                         }
                         nodeptr->next_=nullptr;
-                        //lock 
-
+                        nodeptr->prev_.reset();
                 }
+                void InsertAtFront(NodePtr nodeptr){
+
+                        DummyHead->next_->prev_ = nodeptr;
+                        nodeptr->next_ = DummyHead->next_;
+
+                        DummyHead->next_= nodeptr;
+                        nodeptr->prev_ = DummyHead;
+                }
+
                 void MovetoFront(NodePtr nodeptr){
                         DisconnectFromList(nodeptr);
                         InsertAtFront(nodeptr);
                 }
 
+                void ReleaseFromRear(){
+                        NodePtr prevptr = DummyTail->prev_.lock();
+                        if (!prevptr || prevptr==DummyHead){
+                                return;
+                        }
+                        DisconnectFromList(prevptr);
+                        NodeMap_.erase(prevptr->getKey());
+                        //两处强引用被清除，离开这个函数作用域时，从列表被释放的对象自身根据RAII析构
+                }
 
+                void AddNodeToList(Key key, Value value){
+                        if (NodeMap_.size()>=capacity_){
+                                ReleaseFromRear();
+                        }
+                        NodePtr nodeptr = std::make_shared<LruNodeType>(key,value);
+                        InsertAtFront(nodeptr);
+                        NodeMap_[key]=nodeptr;
+                }
         public:
-                ZXLruCache(int capacity):capacity_=capacity{
+                ZXLruCache(int capacity): capacity_(capacity) {
                         Initializer();
                 }
+                ~ZXLruCache() override = default;
 
                 bool get(Key key, Value& value){
                         std::lock_guard<std::mutex> lock(mutex_);
@@ -82,17 +108,24 @@ namespace ZXCache
                 }
 
                 Value get(Key key){
-
+                        Value value{};
+                        get(key,value);
+                        return value;
                 }
 
-                void push(Key key, Value value){
-
+                void put(Key key, Value value){
+                        std::lock_guard<std::mutex> lock(mutex_);
+                        if (capacity_ <= 0) return;
+                        auto it = NodeMap_.find(key);
+                        if(it!=NodeMap_.end()){
+                                it->second->setValue(value);
+                                MovetoFront(it->second);
+                        }
+                        else{
+                                AddNodeToList(key,value);
+                        }
                 }
-
 
     };
     
-
-
-
-} // namespace ZXCache
+} 
