@@ -94,7 +94,7 @@ namespace ZXCache
                 }
                 ~ZXLruCache() override = default;
 
-                bool get(Key key, Value& value){
+                bool get(Key key, Value& value) override{
                         std::lock_guard<std::mutex> lock(mutex_);
                         auto it = NodeMap_.find(key);
                         if (it!=NodeMap_.end()){
@@ -107,13 +107,13 @@ namespace ZXCache
                         }
                 }
 
-                Value get(Key key){
+                Value get(Key key) override{
                         Value value{};
                         get(key,value);
                         return value;
                 }
 
-                void put(Key key, Value value){
+                void put(Key key, Value value) override{
                         std::lock_guard<std::mutex> lock(mutex_);
                         if (capacity_ <= 0) return;
                         auto it = NodeMap_.find(key);
