@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/shen/Agent_workspace/Learning/Carl_Projekt/Cache/EigeneCache/build",
+  "command": "/usr/bin/c++   -std=gnu++17 -o CMakeFiles/main.dir/testAllCachePolicy.cpp.o -c /home/shen/Agent_workspace/Learning/Carl_Projekt/Cache/EigeneCache/testAllCachePolicy.cpp",
+  "file": "/home/shen/Agent_workspace/Learning/Carl_Projekt/Cache/EigeneCache/testAllCachePolicy.cpp",
+  "output": "CMakeFiles/main.dir/testAllCachePolicy.cpp.o"
+}
+]

@@ -9,9 +9,9 @@ namespace ZXCache{
     public:
             virtual ~ZXCachePolicy() {};
 
-            virtual void put(Key key, Value Value){} = 0;
-            virtual bool get(Key Key, Value& Value)() = 0;
-            virtual Value get(Key key)() =0;
+            virtual void put(Key key, Value value) = 0;
+            virtual bool get(Key key, Value& value) = 0;
+            virtual Value get(Key key) =0;
 
 
     };

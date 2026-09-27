@@ -4,6 +4,7 @@
 #include <list>
 #include <unordered_map>
 #include <memory>
+#include <thread>
 #include <mutex>
 #include <vector>
 #include "ZXCachePolicy.h"
@@ -21,7 +22,7 @@ namespace ZXCache
                 std::shared_ptr<LruNode<Key,Value>> next_;
                 std::weak_ptr<LruNode<Key,Value>> prev_;
         public:
-                LruNode(Key key, Value value): key_(key), value_=(value), AccessCount_(1){}
+                LruNode(Key key, Value value): key_(key), value_(value), AccessCount_(1){}
                 Key getKey() const {return key_;}
                 Value getValue() const {return value_;}
                 void  setValue(const Value& value){value_=value;}

@@ -57,7 +57,7 @@ class ArcLfuPart
             minfreqlist.pop_back();
             if(minfreqlist.empty()){
                 freqMap_.erase(minFreq_);
-                if(!freqMap_.emoty()){
+                if(!freqMap_.empty()){
                     minFreq_=freqMap_.begin()->first;
                 }
             }
@@ -105,7 +105,7 @@ class ArcLfuPart
 
         bool addNewNodeAtFront(const Key& key,const Value& value){
             if(mainCache_.size()>=capacity_){
-                releaseLeastRecent()
+                releaseLeastRecent();
             }
             NodePtr newnode = std::make_shared<NodeType>(key,value);
             mainCache_[key]=newnode;
@@ -114,7 +114,7 @@ class ArcLfuPart
 
             }
                 freqMap_[1].push_front(newnode);
-                minFreq_ =1;
+                minFreq_ = 1;
                 return true;
         }
 
@@ -122,7 +122,7 @@ class ArcLfuPart
             size_t oldFreq = node->getAccessCount();
             node->incrementAccessCount();
             size_t newFreq = node->getAccessCount();
-            auto& oldFreqList = freqMap_[oldFreq]
+            auto& oldFreqList = freqMap_[oldFreq];
             oldFreqList.remove(node);
             if(oldFreqList.empty()){
                 freqMap_.erase(oldFreq);
@@ -131,7 +131,7 @@ class ArcLfuPart
                 }
             }
             
-            if(freqMap_.find(newFreq)==freqMap_,end()){
+            if(freqMap_.find(newFreq)==freqMap_.end()){
                 freqMap_[newFreq]=std::list<NodePtr>(); 
             }
             freqMap_[newFreq].push_back(node);
@@ -152,9 +152,9 @@ class ArcLfuPart
             initializeLists();
         }
 
-        bool put(Key key, Value value){
+        bool put(Key key, Value value) {
             if (capacity_==0){
-                return false
+                return false;
             }
             std::lock_guard<std::mutex> lock(mutex_);
             auto it = mainCache_.find(key);
@@ -165,12 +165,12 @@ class ArcLfuPart
         }
 
 
-        bool get(Key key,Value& value){
+        bool get(Key key,Value& value) {
             std::lock_guard<std::mutex> lock(mutex_);
             auto it = mainCache_.find(key);
-            if(it !=mainCache_.empty){
+            if(it !=mainCache_.end()){
                 value = it->second->getValue();
-                updateExistingNode(it->second);
+                updateExistingNode(it->second,value);
                 return true;
             }
             return false;
@@ -191,10 +191,20 @@ class ArcLfuPart
             --capacity_;
             return true;
         }
-
+        
+        bool checkGhost(Key key) 
+                {
+                    auto it = ghostCache_.find(key);
+                    if (it != ghostCache_.end()) {
+                        removeFromGhost(it->second);
+                        ghostCache_.erase(it);
+                        return true;
+                    }
+                    return false;
+                }
     };
 
-template<typename Key,typename Value>
+template<typename Key, typename Value>
 class ArcLruPart{
         private:
             using NodeType = ArcNode<Key, Value>;
@@ -227,8 +237,8 @@ class ArcLruPart{
                 ghostTail_->prev_ = ghostHead_;
             }
 
-            bool addToGhost(NodePtr node){
-                node->accessCount =1;
+            void addToGhost(NodePtr node){
+                node->accessCount_ =1;
 
                 node->next_ = ghostHead_->next_;
                 node->prev_ = ghostHead_;
@@ -239,7 +249,7 @@ class ArcLruPart{
                 ghostCache_[node->getKey()] = node;
             }
 
-            void removeFromMain(){
+            void removeFromMain(NodePtr node){
                 if (!node->prev_.expired() && node->next_) {
                     auto prev = node->prev_.lock();
                     prev->next_ = node->next_;
@@ -248,7 +258,7 @@ class ArcLruPart{
                 }
             }
             
-            void removeFromGhost(){
+            void removeFromGhost(NodePtr node){
                 if (!node->prev_.expired() && node->next_) {
                     auto prev = node->prev_.lock();
                     prev->next_ = node->next_;
@@ -286,26 +296,27 @@ class ArcLruPart{
 
             }
 
-            bool addNewNode(const Key& key,const Value& value){
+            bool addNewNode(const Key& key, const Value& value){
                 if (mainCache_.size()>=capacity_){
                     releaseLeastRecent();
                 }
                 
                 NodePtr newnode = std::make_shared<NodeType>(key,value);
                 mainCache_[key]=newnode;
-                InsertAtHead(newnode);
+                insertAtHead(newnode);
                 return true;
             }
 
-            void updateExistingNode(NodePtr node, cosnt Value& value){
+            bool updateExistingNode(NodePtr node  , const Value& value){
                 node->setValue(value);
                 moveToFront(node);
+                return true;
             }
 
             void releaseLeastRecent(){
                 NodePtr leastRecentnode = mainTail_->prev_.lock();
                 if(!leastRecentnode||leastRecentnode==mainHead_){
-                    return
+                    return;
                 }
                 removeFromMain(leastRecentnode);
                 if(ghostCache_.size()>=ghostCapacity_){
@@ -327,7 +338,7 @@ class ArcLruPart{
                     auto it = mainCache_.find(key);
                     if (it != mainCache_.end()) 
                     {
-                        return updateExistingNode(it->second, value);
+                        return updateExistingNode(it->second,value);
                     }
                     return addNewNode(key, value);
                 }

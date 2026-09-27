@@ -21,8 +21,8 @@ class ZXArcCache : public ZXCachePolicy<Key, Value>
             explicit ZXArcCache(size_t capacity=10,size_t transformThreshold=2):
                 capacity_(capacity),
                 transformThreshold_(transformThreshold),
-                lfuPart_(std::make_unique<ArcLruPart<Key,Value>>(capacity_,transformThreshold_)),
-                lfuPart_(std::make_unique<ArcLruPart<Key,Value>>(capacity_,transformThreshold_)),
+                lfuPart_(std::make_unique<ArcLfuPart<Key,Value>>(capacity_,transformThreshold_)),
+                lruPart_(std::make_unique<ArcLruPart<Key,Value>>(capacity_,transformThreshold_)){}
 
                 ~ZXArcCache() override = default;
 

@@ -48,8 +48,8 @@ namespace ZXCache
 
                 NodePtr getRear() const { 
                         
-                        auto rear = tail_->prev_node.lock();
-                        if(rear == head_) return nullptr;
+                        NodePtr rear = tail_->prev_node.lock();
+                        if(rear == head_||!rear) return nullptr;
                         return rear; 
                 }
 
@@ -185,9 +185,7 @@ namespace ZXCache
         template<typename Key, typename Value>
         void ZXLfuCache<Key, Value>::kickOut(){
 
-                auto it = freqToFreqList_.find(minFreq_);
-                if (it == freqToFreqList_.end() || !it->second) return;
-                if(!node) return;            
+                NodePtr node = freqToFreqList_[minFreq_]->getRear();
                 removeFromFreqList(node);
                 nodeMap_.erase(node->key_);
                 decreaseFreqNum(node->freq_node);
