@@ -75,7 +75,7 @@ void testHotDataAccess() {
     std::mt19937 gen(rd());
     
     // 基类指针指向派生类对象，添加LFU-Aging
-    std::array<ZXCache::ZXCachePolicy<int, std::string>*, 5> caches = {&lru, &lfu, &arc,&lfuAging};
+    std::array<ZXCache::ZXCachePolicy<int, std::string>*, 4> caches = {&lru, &lfu, &arc,&lfuAging};
     std::vector<int> hits(4, 0);
     std::vector<int> get_operations(4, 0);
     std::vector<std::string> names = {"LRU", "LFU", "ARC" ,"LFU-Aging"};
@@ -137,7 +137,7 @@ void testLoopPattern() {
     //ZXCache::KLruKCache<int, std::string> lruk(CAPACITY, LOOP_SIZE * 2, 2);
     ZXCache::ZXLfuCache<int, std::string> lfuAging(CAPACITY, 3000);
 
-    std::array<ZXCache::ZXCachePolicy<int, std::string>*, 5> caches = {&lru, &lfu, &arc, &lfuAging};
+    std::array<ZXCache::ZXCachePolicy<int, std::string>*, 4> caches = {&lru, &lfu, &arc, &lfuAging};
     std::vector<int> hits(4, 0);
     std::vector<int> get_operations(4, 0);
     std::vector<std::string> names = {"LRU", "LFU", "ARC", "LFU-Aging"};
@@ -205,7 +205,7 @@ void testWorkloadShift() {
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::array<ZXCache::ZXCachePolicy<int, std::string>*, 5> caches = {&lru, &lfu, &arc, &lfuAging};
+    std::array<ZXCache::ZXCachePolicy<int, std::string>*, 4> caches = {&lru, &lfu, &arc, &lfuAging};
     std::vector<int> hits(4, 0);
     std::vector<int> get_operations(4, 0);
     std::vector<std::string> names = {"LRU", "LFU", "ARC","LFU-Aging"};
